@@ -12,46 +12,78 @@ func (m Model) View() string {
 		return "Initializing senk-tui..."
 	}
 
-	// Layout constraints
-	leftPaneWidth := (m.Width / 3) - 2
-	rightPaneWidth := m.Width - leftPaneWidth - 4
-	paneHeight := m.Height - 4 // Account for borders
+	paneWidth1 := (m.Width*25)/100 - 2
+	paneWidth2 := (m.Width*25)/100 - 2
+	paneWidth3 := m.Width - paneWidth1 - paneWidth2 - 6
+	paneHeight := m.Height - 4
 
 	leftStyle := baseStyle
+	midStyle := baseStyle
 	rightStyle := baseStyle
 
 	if m.Focus == FocusLeft {
 		leftStyle = activeStyle
+	} else if m.Focus == FocusMiddle {
+		midStyle = activeStyle
 	} else {
 		rightStyle = activeStyle
 	}
 
-	leftStyle = leftStyle.Width(leftPaneWidth).Height(paneHeight)
-	rightStyle = rightStyle.Width(rightPaneWidth).Height(paneHeight)
+	leftStyle = leftStyle.Width(paneWidth1).Height(paneHeight)
+	midStyle = midStyle.Width(paneWidth2).Height(paneHeight)
+	rightStyle = rightStyle.Width(paneWidth3).Height(paneHeight)
 
 	leftContent := m.viewLeftPane()
-	rightContent := m.viewRightPane(rightPaneWidth, paneHeight-2)
+	midContent := m.viewMiddlePane()
+	rightContent := m.viewRightPane(paneWidth3, paneHeight-2)
 
 	return lipgloss.JoinHorizontal(lipgloss.Top,
 		leftStyle.Render(leftContent),
+		midStyle.Render(midContent),
 		rightStyle.Render(rightContent),
 	)
 }
 
 func (m Model) viewLeftPane() string {
 	var s strings.Builder
-	s.WriteString(titleStyle.Render("Managers") + "\n\n")
+	s.WriteString(titleStyle.Render("Languages") + "\n\n")
 
-	for i, manager := range m.Managers {
+	for i, lang := range m.Languages {
 		cursor := "  "
 		style := unselectedItemStyle
-		if i == m.LeftIndex {
+		if i == m.LangIndex {
+			cursor = "> "
+			style = selectedItemStyle
+		}
+
+		name := lang.Language.Name()
+		if lang.Version != "" {
+			name = fmt.Sprintf("%s (%s)", name, lang.Version)
+		}
+		s.WriteString(fmt.Sprintf("%s%s\n", cursor, style.Render(name)))
+	}
+	return s.String()
+}
+
+func (m Model) viewMiddlePane() string {
+	var s strings.Builder
+	s.WriteString(titleStyle.Render("Managers") + "\n\n")
+
+	if len(m.Languages) == 0 {
+		return s.String()
+	}
+
+	lang := m.Languages[m.LangIndex]
+	for i, mgrData := range lang.Managers {
+		cursor := "  "
+		style := unselectedItemStyle
+		if i == m.MgrIndex {
 			cursor = "> "
 			style = selectedItemStyle
 		}
 
 		status := ""
-		switch manager.State {
+		switch mgrData.State {
 		case StateLoading:
 			status = m.Spinner.View()
 		case StateDone:
@@ -60,9 +92,9 @@ func (m Model) viewLeftPane() string {
 			status = errorStyle.Render("✗")
 		}
 
-		name := manager.Manager.Name()
-		if manager.Version != "" {
-			name = fmt.Sprintf("%s (%s)", name, manager.Version)
+		name := mgrData.Manager.Name()
+		if mgrData.Version != "" {
+			name = fmt.Sprintf("%s (%s)", name, mgrData.Version)
 		}
 
 		s.WriteString(fmt.Sprintf("%s%s [%s]\n", cursor, style.Render(name), status))
@@ -71,14 +103,15 @@ func (m Model) viewLeftPane() string {
 }
 
 func (m Model) viewRightPane(width int, maxVisible int) string {
-	if len(m.Managers) == 0 {
-		return "No package managers found on system."
+	var s strings.Builder
+	s.WriteString(titleStyle.Render("Packages") + "\n\n")
+
+	if len(m.Languages) == 0 || len(m.Languages[m.LangIndex].Managers) == 0 {
+		s.WriteString("No packages available.")
+		return s.String()
 	}
 
-	activeManager := m.Managers[m.LeftIndex]
-
-	var s strings.Builder
-	s.WriteString(titleStyle.Render(activeManager.Manager.Name()+" Packages") + "\n\n")
+	activeManager := m.Languages[m.LangIndex].Managers[m.MgrIndex]
 
 	switch activeManager.State {
 	case StateLoading:
@@ -94,12 +127,11 @@ func (m Model) viewRightPane(width int, maxVisible int) string {
 		return s.String()
 	}
 
-	// Simple pagination/scrolling window
 	startIdx := 0
 	endIdx := len(activeManager.Dependencies)
-	
-	if m.RightIndex >= maxVisible {
-		startIdx = m.RightIndex - maxVisible + 1
+
+	if m.DepIndex >= maxVisible {
+		startIdx = m.DepIndex - maxVisible + 1
 	}
 	if endIdx > startIdx+maxVisible {
 		endIdx = startIdx + maxVisible
@@ -110,17 +142,17 @@ func (m Model) viewRightPane(width int, maxVisible int) string {
 		cursor := "  "
 		style := unselectedItemStyle
 
-		if m.Focus == FocusRight && i == m.RightIndex {
+		if m.Focus == FocusRight && i == m.DepIndex {
 			cursor = "> "
 			style = selectedItemStyle
 		}
 
 		nameRender := style.Render(dep.Name)
 		versionRender := versionStyle.Render(dep.Version)
-		
+
 		nameLen := lipgloss.Width(nameRender)
 		verLen := lipgloss.Width(versionRender)
-		
+
 		padding := width - nameLen - verLen - 6
 		if padding < 1 {
 			padding = 1

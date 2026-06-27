@@ -11,30 +11,29 @@ import (
 )
 
 func main() {
-	var availableManagers []managers.PackageManager
-	
-	allManagers := []managers.PackageManager{
-		managers.BrewManager{},
-		managers.NpmManager{},
-		managers.PipManager{},
-		managers.GoManager{},
-		managers.CargoManager{},
-		managers.GemManager{},
-		managers.DotnetManager{},
-		managers.ComposerManager{},
-		managers.BunManager{},
-		managers.PubManager{},
-		managers.LuarocksManager{},
+	allLanguages := []managers.Language{
+		managers.MacLanguage{},
+		managers.NodeLanguage{},
+		managers.PythonLanguage{},
+		managers.GolangLanguage{},
+		managers.RustLanguage{},
+		managers.RubyLanguage{},
+		managers.DotnetLanguage{},
+		managers.PhpLanguage{},
+		managers.BunLanguage{},
+		managers.DartLanguage{},
+		managers.LuaLanguage{},
 	}
-	
-	for _, m := range allManagers {
-		if m.IsInstalled() {
-			availableManagers = append(availableManagers, m)
+
+	var installedLanguages []managers.Language
+	for _, l := range allLanguages {
+		if l.IsInstalled() {
+			installedLanguages = append(installedLanguages, l)
 		}
 	}
-	
-	model := tui.NewModel(availableManagers)
-	
+
+	model := tui.NewModel(installedLanguages)
+
 	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running senk-tui: %v", err)

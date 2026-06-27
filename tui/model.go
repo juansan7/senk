@@ -22,38 +22,59 @@ type ManagerData struct {
 	Err          error
 }
 
+type LanguageData struct {
+	Language managers.Language
+	Version  string
+	Managers []*ManagerData
+}
+
 type FocusState int
 
 const (
 	FocusLeft FocusState = iota
+	FocusMiddle
 	FocusRight
 )
 
 type Model struct {
-	Managers   []*ManagerData
-	LeftIndex  int
-	RightIndex int
-	Focus      FocusState
-	Width      int
-	Height     int
-	Spinner    spinner.Model
+	Languages []*LanguageData
+	LangIndex int
+	MgrIndex  int
+	DepIndex  int
+	Focus     FocusState
+	Width     int
+	Height    int
+	Spinner   spinner.Model
 }
 
-func NewModel(availableManagers []managers.PackageManager) Model {
-	var mData []*ManagerData
-	for _, m := range availableManagers {
-		mData = append(mData, &ManagerData{
-			Manager: m,
-			State:   StateLoading,
-		})
+func NewModel(availableLanguages []managers.Language) Model {
+	var lData []*LanguageData
+
+	for _, l := range availableLanguages {
+		var mData []*ManagerData
+		for _, m := range l.Managers() {
+			if m.IsInstalled() {
+				mData = append(mData, &ManagerData{
+					Manager: m,
+					State:   StateLoading,
+				})
+			}
+		}
+
+		if len(mData) > 0 {
+			lData = append(lData, &LanguageData{
+				Language: l,
+				Managers: mData,
+			})
+		}
 	}
 
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
 	return Model{
-		Managers: mData,
-		Focus:    FocusLeft,
-		Spinner:  s,
+		Languages: lData,
+		Focus:     FocusLeft,
+		Spinner:   s,
 	}
 }

@@ -2,13 +2,20 @@ package tui
 
 import "senk-tui/managers"
 
+type LangVersionFetchedMsg struct {
+	LangIndex int
+	Version   string
+}
+
 type DepsFetchedMsg struct {
-	Index        int
+	LangIndex    int
+	MgrIndex     int
 	Version      string
 	Dependencies []managers.Dependency
 }
 
 type FetchErrorMsg struct {
-	Index int
-	Err   error
+	LangIndex int
+	MgrIndex  int
+	Err       error
 }
