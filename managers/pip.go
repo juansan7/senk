@@ -13,15 +13,26 @@ type PipManager struct{}
 
 func (m PipManager) Name() string { return "Python (pip)" }
 
+func (m PipManager) getExecutable() string {
+	if _, err := exec.LookPath("pip3"); err == nil {
+		return "pip3"
+	}
+	return "pip"
+}
+
 func (m PipManager) IsInstalled() bool {
-	_, err := exec.LookPath("pip")
+	_, err := exec.LookPath("pip3")
+	if err == nil {
+		return true
+	}
+	_, err = exec.LookPath("pip")
 	return err == nil
 }
 
 func (m PipManager) Fetch() ([]Dependency, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "pip", "list", "--not-required", "--format=json")
+	cmd := exec.CommandContext(ctx, m.getExecutable(), "list", "--not-required", "--format=json")
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, err
@@ -64,7 +75,7 @@ func parsePipOutput(data []byte) ([]Dependency, error) {
 func (m PipManager) ManagerVersion() (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	out, err := exec.CommandContext(ctx, "pip", "--version").Output()
+	out, err := exec.CommandContext(ctx, m.getExecutable(), "--version").Output()
 	if err != nil {
 		return "", err
 	}
