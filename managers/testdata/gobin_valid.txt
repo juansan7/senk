@@ -1,0 +1,7 @@
+/Users/admin/go/bin/dlv: go1.21.0
+	path	github.com/go-delve/delve/cmd/dlv
+	mod	github.com/go-delve/delve	v1.21.0	h1:xxxx
+	dep	github.com/cilium/ebpf	v0.7.0	h1:xxxx
+/Users/admin/go/bin/air: go1.21.4
+	path	github.com/cosmtrek/air
+	mod	github.com/cosmtrek/air	v1.49.0	h1:xxxx

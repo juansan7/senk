@@ -1,0 +1,6 @@
+bat v0.23.0:
+    bat
+cargo-expand v1.0.15:
+    cargo-expand
+ripgrep v13.0.0:
+    rg
