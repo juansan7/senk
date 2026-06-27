@@ -5,6 +5,16 @@ import (
 	"os"
 
 	"senk-tui/managers"
+	"senk-tui/managers/dart"
+	"senk-tui/managers/dotnet"
+	"senk-tui/managers/golang"
+	"senk-tui/managers/lua"
+	"senk-tui/managers/mac"
+	"senk-tui/managers/node"
+	"senk-tui/managers/php"
+	"senk-tui/managers/python"
+	"senk-tui/managers/ruby"
+	"senk-tui/managers/rust"
 	"senk-tui/tui"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,17 +22,17 @@ import (
 
 func main() {
 	allLanguages := []managers.Language{
-		managers.MacLanguage{},
-		managers.NodeLanguage{},
-		managers.PythonLanguage{},
-		managers.GolangLanguage{},
-		managers.RustLanguage{},
-		managers.RubyLanguage{},
-		managers.DotnetLanguage{},
-		managers.PhpLanguage{},
-		managers.BunLanguage{},
-		managers.DartLanguage{},
-		managers.LuaLanguage{},
+		mac.MacLanguage{},
+		node.NodeLanguage{},
+		python.PythonLanguage{},
+		golang.GolangLanguage{},
+		rust.RustLanguage{},
+		ruby.RubyLanguage{},
+		dotnet.DotnetLanguage{},
+		php.PhpLanguage{},
+		node.BunLanguage{},
+		dart.DartLanguage{},
+		lua.LuaLanguage{},
 	}
 
 	var installedLanguages []managers.Language
