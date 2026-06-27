@@ -1,9 +1,62 @@
 package managers
 
 import (
+	"context"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 )
+
+type GoManager struct{}
+
+func (m GoManager) Name() string { return "Go (GOPATH)" }
+
+func (m GoManager) IsInstalled() bool {
+	_, err := exec.LookPath("go")
+	return err == nil
+}
+
+func (m GoManager) Fetch() ([]Dependency, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	gopathCmd := exec.CommandContext(ctx, "go", "env", "GOPATH")
+	gopathBytes, err := gopathCmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	gopath := strings.TrimSpace(string(gopathBytes))
+	if gopath == "" {
+		home, _ := os.UserHomeDir()
+		gopath = filepath.Join(home, "go")
+	}
+
+	binDir := filepath.Join(gopath, "bin")
+	entries, err := os.ReadDir(binDir)
+	if err != nil {
+		return []Dependency{}, nil
+	}
+
+	var binaries []string
+	for _, e := range entries {
+		if !e.IsDir() {
+			binaries = append(binaries, filepath.Join(binDir, e.Name()))
+		}
+	}
+
+	if len(binaries) == 0 {
+		return []Dependency{}, nil
+	}
+
+	args := append([]string{"version", "-m"}, binaries...)
+	versionCmd := exec.CommandContext(ctx, "go", args...)
+	out, _ := versionCmd.Output()
+
+	return parseGoBinOutput(out)
+}
 
 func parseGoBinOutput(data []byte) ([]Dependency, error) {
 	var deps []Dependency
@@ -13,20 +66,14 @@ func parseGoBinOutput(data []byte) ([]Dependency, error) {
 	var currentVersion string
 
 	for _, line := range lines {
-		// Output format:
-		// /path/to/bin: go1.x.y
-		// \tpath\tgithub.com/user/repo/cmd/name
-		// \tmod\tgithub.com/user/repo\tv1.2.3\th1:...
 		if !strings.HasPrefix(line, "\t") {
-			// This is the binary path line. We can extract the name from the path.
-			// e.g. /Users/admin/go/bin/dlv: go1.21.0
 			parts := strings.Split(line, ":")
 			if len(parts) > 0 {
 				pathParts := strings.Split(parts[0], "/")
 				if len(pathParts) > 0 {
 					name := pathParts[len(pathParts)-1]
 					currentName = strings.TrimSpace(name)
-					currentVersion = "(devel)" // fallback
+					currentVersion = "(devel)"
 				}
 			}
 		} else if strings.HasPrefix(line, "\tmod\t") {
@@ -41,10 +88,6 @@ func parseGoBinOutput(data []byte) ([]Dependency, error) {
 				})
 				currentName = ""
 			}
-		} else if strings.HasPrefix(line, "\tpath\t") {
-			// fallback in case 'mod' line is missing but 'path' is present.
-			// Actually we usually wait for 'mod' to get version. 
-			// If we only have 'path', it might be a local build, but we'll wait for next lines.
 		}
 	}
 

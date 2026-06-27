@@ -1,9 +1,32 @@
 package managers
 
 import (
+	"context"
+	"os/exec"
 	"sort"
 	"strings"
+	"time"
 )
+
+type BrewManager struct{}
+
+func (m BrewManager) Name() string { return "Homebrew" }
+
+func (m BrewManager) IsInstalled() bool {
+	_, err := exec.LookPath("brew")
+	return err == nil
+}
+
+func (m BrewManager) Fetch() ([]Dependency, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second) // brew can be slow
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "brew", "list", "--versions")
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	return parseBrewOutput(out)
+}
 
 func parseBrewOutput(data []byte) ([]Dependency, error) {
 	var deps []Dependency
@@ -19,7 +42,7 @@ func parseBrewOutput(data []byte) ([]Dependency, error) {
 		if len(parts) >= 2 {
 			deps = append(deps, Dependency{
 				Name:    parts[0],
-				Version: parts[1], // If there are multiple versions, just take the first one reported
+				Version: parts[1],
 			})
 		}
 	}
