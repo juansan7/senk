@@ -33,8 +33,8 @@ func (m Model) View() string {
 	midStyle = midStyle.Width(paneWidth2).Height(paneHeight)
 	rightStyle = rightStyle.Width(paneWidth3).Height(paneHeight)
 
-	leftContent := m.viewLeftPane()
-	midContent := m.viewMiddlePane()
+	leftContent := m.viewLeftPane(paneWidth1)
+	midContent := m.viewMiddlePane(paneWidth2)
 	rightContent := m.viewRightPane(paneWidth3, paneHeight-2)
 
 	ui := lipgloss.JoinHorizontal(lipgloss.Top,
@@ -106,7 +106,7 @@ func (m Model) renderModalOverlay(bg string) string {
 	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, modal)
 }
 
-func (m Model) viewLeftPane() string {
+func (m Model) viewLeftPane(width int) string {
 	var s strings.Builder
 	s.WriteString(titleStyle.Render("Languages") + "\n\n")
 
@@ -119,15 +119,33 @@ func (m Model) viewLeftPane() string {
 		}
 
 		name := lang.Language.Name()
+		nameRender := style.Render(name)
+		
+		var versionRender string
 		if lang.Version != "" {
-			name = fmt.Sprintf("%s (%s)", name, lang.Version)
+			versionRender = versionStyle.Render(lang.Version)
 		}
-		s.WriteString(fmt.Sprintf("%s%s\n", cursor, style.Render(name)))
+
+		if versionRender != "" {
+			nameLen := lipgloss.Width(nameRender)
+			verLen := lipgloss.Width(versionRender)
+			
+			padding := width - nameLen - verLen - 6
+			if padding < 1 {
+				padding = 1
+			}
+			padStr := strings.Repeat(".", padding)
+			padRender := lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(padStr)
+			
+			s.WriteString(fmt.Sprintf("%s%s %s %s\n", cursor, nameRender, padRender, versionRender))
+		} else {
+			s.WriteString(fmt.Sprintf("%s%s\n", cursor, nameRender))
+		}
 	}
 	return s.String()
 }
 
-func (m Model) viewMiddlePane() string {
+func (m Model) viewMiddlePane(width int) string {
 	var s strings.Builder
 	s.WriteString(titleStyle.Render("Managers") + "\n\n")
 
@@ -155,11 +173,34 @@ func (m Model) viewMiddlePane() string {
 		}
 
 		name := mgrData.Manager.Name()
+		nameRender := style.Render(name)
+		
+		var versionRender string
 		if mgrData.Version != "" {
-			name = fmt.Sprintf("%s (%s)", name, mgrData.Version)
+			versionRender = versionStyle.Render(mgrData.Version)
 		}
-
-		s.WriteString(fmt.Sprintf("%s%s [%s]\n", cursor, style.Render(name), status))
+		
+		statusRender := ""
+		if status != "" {
+			statusRender = fmt.Sprintf(" [%s]", status)
+		}
+		
+		if versionRender != "" {
+			nameLen := lipgloss.Width(nameRender)
+			verLen := lipgloss.Width(versionRender)
+			statusLen := lipgloss.Width(statusRender)
+			
+			padding := width - nameLen - verLen - statusLen - 6
+			if padding < 1 {
+				padding = 1
+			}
+			padStr := strings.Repeat(".", padding)
+			padRender := lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(padStr)
+			
+			s.WriteString(fmt.Sprintf("%s%s %s %s%s\n", cursor, nameRender, padRender, versionRender, statusRender))
+		} else {
+			s.WriteString(fmt.Sprintf("%s%s%s\n", cursor, nameRender, statusRender))
+		}
 	}
 	return s.String()
 }
