@@ -9,6 +9,8 @@ type Dependency struct {
 // PackageManager is the interface all ecosystem scanners must implement.
 type PackageManager interface {
 	Name() string
+	// ManagerVersion fetches the CLI tool version
+	ManagerVersion() (string, error)
 	// Fetch runs the underlying shell commands and parses the output.
 	Fetch() ([]Dependency, error)
 	// IsInstalled checks if the underlying CLI tool exists in $PATH.

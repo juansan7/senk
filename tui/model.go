@@ -16,6 +16,7 @@ const (
 
 type ManagerData struct {
 	Manager      managers.PackageManager
+	Version      string
 	State        ManagerState
 	Dependencies []managers.Dependency
 	Err          error

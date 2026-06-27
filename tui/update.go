@@ -19,11 +19,12 @@ func (m Model) Init() tea.Cmd {
 
 func fetchCmd(index int, manager managers.PackageManager) tea.Cmd {
 	return func() tea.Msg {
+		version, _ := manager.ManagerVersion()
 		deps, err := manager.Fetch()
 		if err != nil {
 			return FetchErrorMsg{Index: index, Err: err}
 		}
-		return DepsFetchedMsg{Index: index, Dependencies: deps}
+		return DepsFetchedMsg{Index: index, Version: version, Dependencies: deps}
 	}
 }
 
@@ -73,6 +74,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case DepsFetchedMsg:
 		if msg.Index >= 0 && msg.Index < len(m.Managers) {
+			m.Managers[msg.Index].Version = msg.Version
 			m.Managers[msg.Index].Dependencies = msg.Dependencies
 			m.Managers[msg.Index].State = StateDone
 		}

@@ -1,9 +1,11 @@
 package managers
+
 import (
+	"os"
 	"reflect"
 	"testing"
-	"os"
 )
+
 func TestParseComposerOutput(t *testing.T) {
 	validData, _ := os.ReadFile("testdata/composer_valid.json")
 	tests := []struct {
@@ -12,8 +14,8 @@ func TestParseComposerOutput(t *testing.T) {
 		expected []Dependency
 	}{
 		{
-			name: "Valid composer json",
-			input: validData,
+			name:     "Valid composer json",
+			input:    validData,
 			expected: []Dependency{{Name: "laravel/installer", Version: "v5.1.0"}},
 		},
 	}

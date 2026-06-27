@@ -1,9 +1,9 @@
 package managers
 
 import (
+	"os"
 	"reflect"
 	"testing"
-	"os"
 )
 
 func TestParseCargoOutput(t *testing.T) {

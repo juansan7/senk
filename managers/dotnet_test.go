@@ -1,9 +1,11 @@
 package managers
+
 import (
+	"os"
 	"reflect"
 	"testing"
-	"os"
 )
+
 func TestParseDotnetOutput(t *testing.T) {
 	validData, _ := os.ReadFile("testdata/dotnet_valid.txt")
 	tests := []struct {
@@ -12,7 +14,7 @@ func TestParseDotnetOutput(t *testing.T) {
 		expected []Dependency
 	}{
 		{
-			name: "Valid dotnet output",
+			name:  "Valid dotnet output",
 			input: validData,
 			expected: []Dependency{
 				{Name: "dotnet-ef", Version: "7.0.5"},

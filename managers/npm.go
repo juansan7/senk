@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os/exec"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -54,4 +55,14 @@ func parseNPMOutput(data []byte) ([]Dependency, error) {
 	}
 
 	return deps, nil
+}
+
+func (m NpmManager) ManagerVersion() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "npm", "--version").Output()
+	if err != nil {
+		return "", err
+	}
+	return "v" + strings.TrimSpace(string(out)), nil
 }

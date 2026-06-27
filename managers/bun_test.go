@@ -1,9 +1,11 @@
 package managers
+
 import (
+	"os"
 	"reflect"
 	"testing"
-	"os"
 )
+
 func TestParseBunOutput(t *testing.T) {
 	validData, _ := os.ReadFile("testdata/bun_valid.txt")
 	tests := []struct {
@@ -12,7 +14,7 @@ func TestParseBunOutput(t *testing.T) {
 		expected []Dependency
 	}{
 		{
-			name: "Valid bun output",
+			name:  "Valid bun output",
 			input: validData,
 			expected: []Dependency{
 				{Name: "cowsay", Version: "1.5.0"},

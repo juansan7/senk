@@ -37,6 +37,18 @@ func parseGemOutput(data []byte) ([]Dependency, error) {
 		}
 	}
 	sort.Slice(deps, func(i, j int) bool { return deps[i].Name < deps[j].Name })
-	if deps == nil { deps = []Dependency{} }
+	if deps == nil {
+		deps = []Dependency{}
+	}
 	return deps, nil
+}
+
+func (m GemManager) ManagerVersion() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "gem", "--version").Output()
+	if err != nil {
+		return "", err
+	}
+	return "v" + strings.TrimSpace(string(out)), nil
 }

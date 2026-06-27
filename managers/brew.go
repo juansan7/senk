@@ -22,14 +22,14 @@ func (m BrewManager) Fetch() ([]Dependency, error) {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "brew", "list", "--versions")
 	out, err := cmd.Output()
-	
+
 	// Homebrew sometimes returns exit status 1 (e.g. Ruby errors with casks)
 	// but still prints the valid list of packages to stdout.
 	// If we have output, we should try to parse it regardless of the error.
 	if len(out) > 0 {
 		return parseBrewOutput(out)
 	}
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -64,4 +64,18 @@ func parseBrewOutput(data []byte) ([]Dependency, error) {
 	}
 
 	return deps, nil
+}
+
+func (m BrewManager) ManagerVersion() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "brew", "--version").Output()
+	if err != nil {
+		return "", err
+	}
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	if len(lines) > 0 {
+		return lines[0], nil
+	}
+	return "", nil
 }

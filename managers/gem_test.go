@@ -1,9 +1,9 @@
 package managers
 
 import (
+	"os"
 	"reflect"
 	"testing"
-	"os"
 )
 
 func TestParseGemOutput(t *testing.T) {
@@ -22,8 +22,8 @@ func TestParseGemOutput(t *testing.T) {
 			},
 		},
 		{
-			name:  "Empty",
-			input: []byte(""),
+			name:     "Empty",
+			input:    []byte(""),
 			expected: []Dependency{},
 		},
 	}

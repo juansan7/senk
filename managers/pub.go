@@ -9,6 +9,7 @@ import (
 )
 
 type PubManager struct{}
+
 func (m PubManager) Name() string { return "Dart (pub)" }
 func (m PubManager) IsInstalled() bool {
 	_, err := exec.LookPath("dart")
@@ -18,7 +19,9 @@ func (m PubManager) Fetch() ([]Dependency, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "dart", "pub", "global", "list").Output()
-	if len(out) > 0 { return parsePubOutput(out) }
+	if len(out) > 0 {
+		return parsePubOutput(out)
+	}
 	return nil, err
 }
 
@@ -32,6 +35,22 @@ func parsePubOutput(data []byte) ([]Dependency, error) {
 		}
 	}
 	sort.Slice(deps, func(i, j int) bool { return deps[i].Name < deps[j].Name })
-	if deps == nil { deps = []Dependency{} }
+	if deps == nil {
+		deps = []Dependency{}
+	}
 	return deps, nil
+}
+
+func (m PubManager) ManagerVersion() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "dart", "--version").Output()
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Fields(string(out))
+	if len(parts) >= 4 {
+		return "v" + parts[3], nil
+	}
+	return "", nil
 }

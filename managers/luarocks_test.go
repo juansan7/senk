@@ -1,9 +1,11 @@
 package managers
+
 import (
+	"os"
 	"reflect"
 	"testing"
-	"os"
 )
+
 func TestParseLuarocksOutput(t *testing.T) {
 	validData, _ := os.ReadFile("testdata/luarocks_valid.txt")
 	tests := []struct {
@@ -12,7 +14,7 @@ func TestParseLuarocksOutput(t *testing.T) {
 		expected []Dependency
 	}{
 		{
-			name: "Valid luarocks output",
+			name:  "Valid luarocks output",
 			input: validData,
 			expected: []Dependency{
 				{Name: "luasocket", Version: "3.0.0-1"},

@@ -10,6 +10,7 @@ import (
 )
 
 type BunManager struct{}
+
 func (m BunManager) Name() string { return "Bun" }
 func (m BunManager) IsInstalled() bool {
 	_, err := exec.LookPath("bun")
@@ -19,7 +20,9 @@ func (m BunManager) Fetch() ([]Dependency, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "bun", "pm", "ls", "-g").Output()
-	if len(out) > 0 { return parseBunOutput(out) }
+	if len(out) > 0 {
+		return parseBunOutput(out)
+	}
 	return nil, err
 }
 
@@ -34,6 +37,18 @@ func parseBunOutput(data []byte) ([]Dependency, error) {
 		}
 	}
 	sort.Slice(deps, func(i, j int) bool { return deps[i].Name < deps[j].Name })
-	if deps == nil { deps = []Dependency{} }
+	if deps == nil {
+		deps = []Dependency{}
+	}
 	return deps, nil
+}
+
+func (m BunManager) ManagerVersion() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "bun", "--version").Output()
+	if err != nil {
+		return "", err
+	}
+	return "v" + strings.TrimSpace(string(out)), nil
 }

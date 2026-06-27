@@ -4,6 +4,7 @@ import "senk-tui/managers"
 
 type DepsFetchedMsg struct {
 	Index        int
+	Version      string
 	Dependencies []managers.Dependency
 }
 

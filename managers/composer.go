@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"os/exec"
 	"sort"
+	"strings"
 	"time"
 )
 
 type ComposerManager struct{}
+
 func (m ComposerManager) Name() string { return "PHP (composer)" }
 func (m ComposerManager) IsInstalled() bool {
 	_, err := exec.LookPath("composer")
@@ -18,7 +20,9 @@ func (m ComposerManager) Fetch() ([]Dependency, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "composer", "global", "show", "--format=json").Output()
-	if len(out) > 0 { return parseComposerOutput(out) }
+	if len(out) > 0 {
+		return parseComposerOutput(out)
+	}
 	return nil, err
 }
 
@@ -39,6 +43,22 @@ func parseComposerOutput(data []byte) ([]Dependency, error) {
 		deps = append(deps, Dependency{Name: pkg.Name, Version: pkg.Version})
 	}
 	sort.Slice(deps, func(i, j int) bool { return deps[i].Name < deps[j].Name })
-	if deps == nil { deps = []Dependency{} }
+	if deps == nil {
+		deps = []Dependency{}
+	}
 	return deps, nil
+}
+
+func (m ComposerManager) ManagerVersion() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "composer", "--version").Output()
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Fields(string(out))
+	if len(parts) >= 3 {
+		return "v" + parts[2], nil
+	}
+	return "", nil
 }

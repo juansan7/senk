@@ -60,7 +60,12 @@ func (m Model) viewLeftPane() string {
 			status = errorStyle.Render("✗")
 		}
 
-		s.WriteString(fmt.Sprintf("%s%s [%s]\n", cursor, style.Render(manager.Manager.Name()), status))
+		name := manager.Manager.Name()
+		if manager.Version != "" {
+			name = fmt.Sprintf("%s (%s)", name, manager.Version)
+		}
+
+		s.WriteString(fmt.Sprintf("%s%s [%s]\n", cursor, style.Render(name), status))
 	}
 	return s.String()
 }
