@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "name": "global-deps",
+  "dependencies": {
+    "npm": {
+      "version": "10.2.4",
+      "resolved": "https://registry.npmjs.org/npm/-/npm-10.2.4.tgz"
+    },
+    "typescript": {
+      "version": "5.3.3"
+    },
+    "yarn": {
+      "version": "1.22.19"
+    }
+  }
+}
