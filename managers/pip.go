@@ -21,7 +21,7 @@ func (m PipManager) IsInstalled() bool {
 func (m PipManager) Fetch() ([]Dependency, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "pip", "list", "--format=json")
+	cmd := exec.CommandContext(ctx, "pip", "list", "--not-required", "--format=json")
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, err

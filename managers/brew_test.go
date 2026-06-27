@@ -1,64 +1,36 @@
 package managers
 
 import (
-	"os"
 	"reflect"
 	"testing"
 )
 
-func TestParseBrewOutput(t *testing.T) {
-	validData, err := os.ReadFile("testdata/brew_valid.txt")
+func TestParseFilteredBrewOutput(t *testing.T) {
+	leavesData := []byte("jq\nnode\ngo\n")
+	casksData := []byte("google-chrome\nspotify\n")
+	versionsMap := map[string]string{
+		"jq":            "1.7.1",
+		"node":          "21.2.0",
+		"go":            "1.21.6",
+		"google-chrome": "120.0.0.0",
+		"spotify":       "1.2.25",
+		"openssl":       "3.0.0", // This shouldn't appear in the output because it's not a leaf/cask
+	}
+
+	expected := []Dependency{
+		{Name: "go", Version: "1.21.6"},
+		{Name: "google-chrome", Version: "120.0.0.0"},
+		{Name: "jq", Version: "1.7.1"},
+		{Name: "node", Version: "21.2.0"},
+		{Name: "spotify", Version: "1.2.25"},
+	}
+
+	result, err := parseFilteredBrewOutput(leavesData, casksData, versionsMap)
 	if err != nil {
-		t.Fatalf("Failed to read testdata: %v", err)
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	tests := []struct {
-		name     string
-		input    []byte
-		expected []Dependency
-		hasError bool
-	}{
-		{
-			name:  "Valid brew output",
-			input: validData,
-			expected: []Dependency{
-				{Name: "curl", Version: "8.4.0"},
-				{Name: "git", Version: "2.42.0"},
-				{Name: "go", Version: "1.21.4"},
-				{Name: "jq", Version: "1.7.1"},
-				{Name: "node", Version: "21.2.0"},
-				{Name: "python@3.11", Version: "3.11.6"},
-			},
-			hasError: false,
-		},
-		{
-			name:     "Empty Output",
-			input:    []byte(``),
-			expected: []Dependency{},
-			hasError: false,
-		},
-		{
-			name: "Malformed Line (ignored)",
-			input: []byte(`justoneword
-valid 1.0.0`),
-			expected: []Dependency{
-				{Name: "valid", Version: "1.0.0"},
-			},
-			hasError: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := parseBrewOutput(tt.input)
-
-			if (err != nil) != tt.hasError {
-				t.Fatalf("expected error: %v, got: %v", tt.hasError, err)
-			}
-
-			if !reflect.DeepEqual(result, tt.expected) {
-				t.Errorf("expected %v, got %v", tt.expected, result)
-			}
-		})
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("expected %v, got %v", expected, result)
 	}
 }

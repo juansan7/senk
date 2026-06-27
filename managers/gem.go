@@ -19,7 +19,7 @@ func (m GemManager) IsInstalled() bool {
 func (m GemManager) Fetch() ([]Dependency, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	out, err := exec.CommandContext(ctx, "gem", "list", "--local").Output()
+	out, err := exec.CommandContext(ctx, "gem", "list", "--local", "--no-default").Output()
 	if len(out) > 0 {
 		return parseGemOutput(out)
 	}

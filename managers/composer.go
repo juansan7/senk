@@ -19,7 +19,7 @@ func (m ComposerManager) IsInstalled() bool {
 func (m ComposerManager) Fetch() ([]Dependency, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	out, err := exec.CommandContext(ctx, "composer", "global", "show", "--format=json").Output()
+	out, err := exec.CommandContext(ctx, "composer", "global", "show", "--direct", "--format=json").Output()
 	if len(out) > 0 {
 		return parseComposerOutput(out)
 	}
