@@ -4,36 +4,32 @@ import (
 	"fmt"
 	"os"
 
+	"senk-tui/managers"
+	"senk-tui/tui"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type model struct{}
-
-func initialModel() model {
-	return model{}
-}
-
-func (m model) Init() tea.Cmd {
-	// Task 1.1: Immediately quit for smoke test
-	return tea.Quit
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if msg.String() == "q" || msg.String() == "ctrl+c" {
-			return m, tea.Quit
+func main() {
+	var availableManagers []managers.PackageManager
+	
+	allManagers := []managers.PackageManager{
+		managers.BrewManager{},
+		managers.NpmManager{},
+		managers.PipManager{},
+		managers.GoManager{},
+		managers.CargoManager{},
+	}
+	
+	for _, m := range allManagers {
+		if m.IsInstalled() {
+			availableManagers = append(availableManagers, m)
 		}
 	}
-	return m, nil
-}
-
-func (m model) View() string {
-	return "senk-tui initialized\n"
-}
-
-func main() {
-	p := tea.NewProgram(initialModel())
+	
+	model := tui.NewModel(availableManagers)
+	
+	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running senk-tui: %v", err)
 		os.Exit(1)
