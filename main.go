@@ -19,6 +19,12 @@ func main() {
 		managers.PipManager{},
 		managers.GoManager{},
 		managers.CargoManager{},
+		managers.GemManager{},
+		managers.DotnetManager{},
+		managers.ComposerManager{},
+		managers.BunManager{},
+		managers.PubManager{},
+		managers.LuarocksManager{},
 	}
 	
 	for _, m := range allManagers {

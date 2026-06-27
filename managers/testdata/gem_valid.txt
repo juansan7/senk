@@ -1,0 +1,2 @@
+actionmailer (7.1.2, 7.0.8)
+bundler (2.4.22)

@@ -1,0 +1,2 @@
+luasocket 3.0.0-1 installed /path
+penlight 1.13.1-1 installed /path

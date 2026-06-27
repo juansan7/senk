@@ -1,0 +1,4 @@
+Package Id      Version      Commands
+-----------------------------------
+dotnet-ef       7.0.5        dotnet-ef
+dotnetsay       1.0.0        dotnetsay
