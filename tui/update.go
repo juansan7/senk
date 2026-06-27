@@ -38,13 +38,52 @@ func fetchMgrCmd(lIdx int, mIdx int, manager managers.PackageManager) tea.Cmd {
 	}
 }
 
+func fetchDetailsCmd(manager managers.PackageManager, dep managers.Dependency) tea.Cmd {
+	return func() tea.Msg {
+		details, err := manager.FetchDetails(dep)
+		if err != nil {
+			return DetailsErrorMsg{Err: err}
+		}
+		return DetailsFetchedMsg{Details: details}
+	}
+}
+
+func uninstallCmd(manager managers.PackageManager, dep managers.Dependency) tea.Cmd {
+	return func() tea.Msg {
+		err := manager.Uninstall(dep)
+		if err != nil {
+			return UninstallErrorMsg{Err: err}
+		}
+		return UninstallCompleteMsg{}
+	}
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
 
 	case tea.KeyMsg:
+		// Modal Interception
+		if m.Modal.State != ModalClosed {
+			switch msg.String() {
+			case "esc", "q":
+				if m.Modal.State != ModalUninstalling {
+					m.Modal.State = ModalClosed
+				}
+			case "x", "backspace":
+				if m.Modal.State == ModalReady {
+					m.Modal.State = ModalUninstalling
+					activeManager := m.Languages[m.Modal.LangIndex].Managers[m.Modal.MgrIndex].Manager
+					dep := managers.Dependency{Name: m.Modal.Details.Name, Version: m.Modal.Details.Version}
+					return m, uninstallCmd(activeManager, dep)
+				}
+			}
+			return m, nil
+		}
+
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
@@ -57,6 +96,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else if m.Focus == FocusMiddle && len(m.Languages) > 0 && len(m.Languages[m.LangIndex].Managers) > 0 {
 				m.Focus = FocusRight
 				m.DepIndex = 0
+			} else if m.Focus == FocusRight && msg.String() == "enter" {
+				// Open Modal
+				activeManager := m.Languages[m.LangIndex].Managers[m.MgrIndex]
+				if len(activeManager.Dependencies) > 0 {
+					dep := activeManager.Dependencies[m.DepIndex]
+					m.Modal.State = ModalLoading
+					m.Modal.LangIndex = m.LangIndex
+					m.Modal.MgrIndex = m.MgrIndex
+					return m, fetchDetailsCmd(activeManager.Manager, dep)
+				}
 			}
 
 		case "esc", "left", "h":
@@ -96,6 +145,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+	case DetailsFetchedMsg:
+		m.Modal.State = ModalReady
+		m.Modal.Details = msg.Details
+
+	case DetailsErrorMsg:
+		m.Modal.State = ModalError
+		m.Modal.Err = msg.Err
+
+	case UninstallCompleteMsg:
+		m.Modal.State = ModalClosed
+		// Re-fetch the manager to refresh the list
+		activeManager := m.Languages[m.Modal.LangIndex].Managers[m.Modal.MgrIndex]
+		activeManager.State = StateLoading
+		cmds = append(cmds, fetchMgrCmd(m.Modal.LangIndex, m.Modal.MgrIndex, activeManager.Manager))
+
+	case UninstallErrorMsg:
+		m.Modal.State = ModalError
+		m.Modal.Err = msg.Err
+
 	case LangVersionFetchedMsg:
 		if msg.LangIndex >= 0 && msg.LangIndex < len(m.Languages) {
 			m.Languages[msg.LangIndex].Version = msg.Version
@@ -121,8 +189,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.Spinner, cmd = m.Spinner.Update(msg)
-		return m, cmd
+		cmds = append(cmds, cmd)
 	}
 
+	if len(cmds) > 0 {
+		return m, tea.Batch(cmds...)
+	}
 	return m, nil
 }

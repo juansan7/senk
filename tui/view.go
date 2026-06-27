@@ -37,11 +37,73 @@ func (m Model) View() string {
 	midContent := m.viewMiddlePane()
 	rightContent := m.viewRightPane(paneWidth3, paneHeight-2)
 
-	return lipgloss.JoinHorizontal(lipgloss.Top,
+	ui := lipgloss.JoinHorizontal(lipgloss.Top,
 		leftStyle.Render(leftContent),
 		midStyle.Render(midContent),
 		rightStyle.Render(rightContent),
 	)
+
+	if m.Modal.State != ModalClosed {
+		return m.renderModalOverlay(ui)
+	}
+
+	return ui
+}
+
+func (m Model) renderModalOverlay(bg string) string {
+	var s strings.Builder
+
+	switch m.Modal.State {
+	case ModalLoading:
+		s.WriteString(fmt.Sprintf("%s Fetching package details...", m.Spinner.View()))
+
+	case ModalError:
+		s.WriteString(errorStyle.Render("Failed to fetch/uninstall:\n"))
+		s.WriteString(fmt.Sprintf("%v\n\nPress Esc to close.", m.Modal.Err))
+
+	case ModalUninstalling:
+		s.WriteString(fmt.Sprintf("%s Uninstalling %s...", m.Spinner.View(), m.Modal.Details.Name))
+
+	case ModalReady:
+		s.WriteString(titleStyle.Render(fmt.Sprintf("%s @ %s", m.Modal.Details.Name, m.Modal.Details.Version)) + "\n\n")
+
+		if m.Modal.Details.Description != "" {
+			s.WriteString(fmt.Sprintf("📝 %s\n\n", m.Modal.Details.Description))
+		}
+		if m.Modal.Details.Author != "" {
+			s.WriteString(fmt.Sprintf("👤 Author: %s\n", m.Modal.Details.Author))
+		}
+		if m.Modal.Details.Homepage != "" {
+			s.WriteString(fmt.Sprintf("🔗 URL: %s\n", m.Modal.Details.Homepage))
+		}
+		if m.Modal.Details.Size != "" {
+			s.WriteString(fmt.Sprintf("📦 Size: %s\n", m.Modal.Details.Size))
+		}
+		if m.Modal.Details.Path != "" {
+			s.WriteString(fmt.Sprintf("📂 Path: %s\n", m.Modal.Details.Path))
+		}
+
+		s.WriteString("\n" + strings.Repeat("─", 30) + "\n")
+		s.WriteString(fmt.Sprintf("Press %s to Uninstall, or %s to close.", dangerStyle.Render("x"), selectedItemStyle.Render("Esc")))
+	}
+
+	modal := modalStyle.Render(s.String())
+
+	// Simple centering logic over the background
+	modalWidth := lipgloss.Width(modal)
+	modalHeight := lipgloss.Height(modal)
+
+	xOffset := (m.Width - modalWidth) / 2
+	yOffset := (m.Height - modalHeight) / 2
+
+	if xOffset < 0 {
+		xOffset = 0
+	}
+	if yOffset < 0 {
+		yOffset = 0
+	}
+
+	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, modal)
 }
 
 func (m Model) viewLeftPane() string {

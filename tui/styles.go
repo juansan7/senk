@@ -28,4 +28,14 @@ var (
 
 	versionStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("240")) // Dark grey for versions
+
+	modalStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("62")).
+			Padding(1, 2).
+			Background(lipgloss.Color("235"))
+
+	dangerStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("196")).
+			Bold(true)
 )

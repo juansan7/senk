@@ -45,6 +45,7 @@ type Model struct {
 	Width     int
 	Height    int
 	Spinner   spinner.Model
+	Modal     ModalData // New Modal state
 }
 
 func NewModel(availableLanguages []managers.Language) Model {
@@ -76,5 +77,6 @@ func NewModel(availableLanguages []managers.Language) Model {
 		Languages: lData,
 		Focus:     FocusLeft,
 		Spinner:   s,
+		Modal:     ModalData{State: ModalClosed},
 	}
 }
