@@ -1,2 +1,4 @@
 actionmailer (7.1.2, 7.0.8)
-bundler (2.4.22)
+bundler (2.4.22, default: 1.17.2)
+date (default: 2.0.3)
+CFPropertyList (2.3.6)

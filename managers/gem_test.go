@@ -1,9 +1,9 @@
 package managers
 
 import (
-	"os"
 	"reflect"
 	"testing"
+	"os"
 )
 
 func TestParseGemOutput(t *testing.T) {
@@ -14,16 +14,17 @@ func TestParseGemOutput(t *testing.T) {
 		expected []Dependency
 	}{
 		{
-			name:  "Valid gem output",
+			name:  "Valid gem output filtering defaults",
 			input: validData,
 			expected: []Dependency{
+				{Name: "CFPropertyList", Version: "2.3.6"},
 				{Name: "actionmailer", Version: "7.1.2, 7.0.8"},
 				{Name: "bundler", Version: "2.4.22"},
 			},
 		},
 		{
-			name:     "Empty",
-			input:    []byte(""),
+			name:  "Empty",
+			input: []byte(""),
 			expected: []Dependency{},
 		},
 	}

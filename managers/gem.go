@@ -19,7 +19,7 @@ func (m GemManager) IsInstalled() bool {
 func (m GemManager) Fetch() ([]Dependency, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	out, err := exec.CommandContext(ctx, "gem", "list", "--local", "--no-default").Output()
+	out, err := exec.CommandContext(ctx, "gem", "list", "--local").Output()
 	if len(out) > 0 {
 		return parseGemOutput(out)
 	}
@@ -33,7 +33,17 @@ func parseGemOutput(data []byte) ([]Dependency, error) {
 	for _, line := range lines {
 		matches := re.FindStringSubmatch(strings.TrimSpace(line))
 		if len(matches) == 3 {
-			deps = append(deps, Dependency{Name: matches[1], Version: matches[2]})
+			versionsRaw := matches[2]
+			var userVersions []string
+			for _, v := range strings.Split(versionsRaw, ",") {
+				v = strings.TrimSpace(v)
+				if !strings.HasPrefix(v, "default:") {
+					userVersions = append(userVersions, v)
+				}
+			}
+			if len(userVersions) > 0 {
+				deps = append(deps, Dependency{Name: matches[1], Version: strings.Join(userVersions, ", ")})
+			}
 		}
 	}
 	sort.Slice(deps, func(i, j int) bool { return deps[i].Name < deps[j].Name })
