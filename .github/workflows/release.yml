@@ -3,7 +3,8 @@ name: Build and Release
 on:
   push:
     tags:
-      - "v*.*.*" # Trigger on version tags
+      - "v*.*.*" # Trigger on semantic version tags
+      - "v*"     # Trigger on major version tags like v1
 
 permissions:
   contents: write # Needed for uploading release assets and creating releases
