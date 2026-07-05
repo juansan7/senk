@@ -15,60 +15,32 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        os: [ubuntu-24.04, macos-latest, windows-latest]
-        goos: [linux, darwin, windows]
+        os: [ubuntu-24.04, macos-latest]
+        goos: [linux, darwin]
         goarch: [amd64, arm64, 386]
         include:
           - os: ubuntu-24.04
             goos: linux
             goarch: amd64
-            extension: ""
           - os: ubuntu-24.04
             goos: linux
             goarch: arm64
-            extension: ""
           - os: ubuntu-24.04
             goos: linux
             goarch: 386
-            extension: ""
           - os: macos-latest
             goos: darwin
             goarch: amd64
-            extension: ""
           - os: macos-latest
             goos: darwin
             goarch: arm64
-            extension: ""
-          - os: windows-latest
-            goos: windows
-            goarch: amd64
-            extension: ".exe"
-          - os: windows-latest
-            goos: windows
-            goarch: arm64
-            extension: ".exe"
-          - os: windows-latest
-            goos: windows
-            goarch: 386
-            extension: ".exe"
         exclude:
           - os: ubuntu-24.04
             goos: darwin
-          - os: ubuntu-24.04
-            goos: windows
           - os: macos-latest
             goos: linux
-          - os: macos-latest
-            goos: windows
           - os: macos-latest
             goarch: 386
-          - os: windows-latest
-            goos: linux
-          - os: windows-latest
-            goos: darwin
-            goarch: arm64
-          - os: windows-latest
-            goarch: arm64
 
     steps:
       - name: Checkout code
@@ -81,13 +53,13 @@ jobs:
 
       - name: Build
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -o senk-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }} main.go
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -o senk-${{ matrix.goos }}-${{ matrix.goarch }} main.go
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: senk-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
-          path: senk-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
+          name: senk-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: senk-${{ matrix.goos }}-${{ matrix.goarch }}
 
   release:
     needs: build
@@ -137,7 +109,4 @@ jobs:
             ./senk-linux-386/senk-linux-386 \
             ./senk-darwin-amd64/senk-darwin-amd64 \
             ./senk-darwin-arm64/senk-darwin-arm64 \
-            ./senk-windows-amd64.exe/senk-windows-amd64.exe \
-            ./senk-windows-arm64.exe/senk-windows-arm64.exe \
-            ./senk-windows-386.exe/senk-windows-386.exe \
             --title "Release ${{ github.ref }}" --notes "$commits"

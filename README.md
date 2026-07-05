@@ -11,11 +11,11 @@
 - **Package Details:** Fetch deep metadata and sizes for globally installed packages.
 - **Uninstall Packages:** Remove packages directly from the interface with a single keystroke.
 - **Fast & Asynchronous:** Loads packages and executes actions concurrently without blocking the UI.
-- **Cross-Platform:** Runs natively on Linux, macOS, and Windows without external dependencies.
+- **Cross-Platform:** Runs natively on macOS and Linux (Unix environments).
 
 ## Installation
 
-First, make sure you have [Go](https://golang.org/dl/) installed on your system. Alternatively, you can download a pre-compiled binary for your OS (Linux, macOS, Windows) from the [Releases](https://github.com/your_username/dependencies-tui/releases) page.
+First, make sure you have [Go](https://golang.org/dl/) installed on your system. Alternatively, you can download a pre-compiled binary for your OS (macOS or Linux) from the [Releases](https://github.com/your_username/dependencies-tui/releases) page.
 
 1. Clone this repository:
 
