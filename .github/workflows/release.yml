@@ -17,11 +17,19 @@ jobs:
       matrix:
         os: [ubuntu-24.04, macos-latest, windows-latest]
         goos: [linux, darwin, windows]
-        goarch: [amd64, arm64]
+        goarch: [amd64, arm64, 386]
         include:
           - os: ubuntu-24.04
             goos: linux
             goarch: amd64
+            extension: ""
+          - os: ubuntu-24.04
+            goos: linux
+            goarch: arm64
+            extension: ""
+          - os: ubuntu-24.04
+            goos: linux
+            goarch: 386
             extension: ""
           - os: macos-latest
             goos: darwin
@@ -35,8 +43,29 @@ jobs:
             goos: windows
             goarch: amd64
             extension: ".exe"
+          - os: windows-latest
+            goos: windows
+            goarch: arm64
+            extension: ".exe"
+          - os: windows-latest
+            goos: windows
+            goarch: 386
+            extension: ".exe"
         exclude:
           - os: ubuntu-24.04
+            goos: darwin
+          - os: ubuntu-24.04
+            goos: windows
+          - os: macos-latest
+            goos: linux
+          - os: macos-latest
+            goos: windows
+          - os: macos-latest
+            goarch: 386
+          - os: windows-latest
+            goos: linux
+          - os: windows-latest
+            goos: darwin
             goarch: arm64
           - os: windows-latest
             goarch: arm64
@@ -102,4 +131,13 @@ jobs:
       - name: Create Release
         id: create_release
         run: |
-          gh release create ${{ github.ref }} ./senk-linux-amd64/senk-linux-amd64 ./senk-darwin-arm64/senk-darwin-arm64 ./senk-darwin-amd64/senk-darwin-amd64 ./senk-windows-amd64.exe/senk-windows-amd64.exe --title "Release ${{ github.ref }}" --notes "$commits"
+          gh release create ${{ github.ref }} \
+            ./senk-linux-amd64/senk-linux-amd64 \
+            ./senk-linux-arm64/senk-linux-arm64 \
+            ./senk-linux-386/senk-linux-386 \
+            ./senk-darwin-amd64/senk-darwin-amd64 \
+            ./senk-darwin-arm64/senk-darwin-arm64 \
+            ./senk-windows-amd64.exe/senk-windows-amd64.exe \
+            ./senk-windows-arm64.exe/senk-windows-arm64.exe \
+            ./senk-windows-386.exe/senk-windows-386.exe \
+            --title "Release ${{ github.ref }}" --notes "$commits"
