@@ -17,3 +17,5 @@ senk-tui
 
 # OS specific
 .DS_Store
+
+release/

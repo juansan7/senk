@@ -1,0 +1,105 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Trigger on version tags
+
+permissions:
+  contents: write # Needed for uploading release assets and creating releases
+  packages: write # Needed for uploading artifacts
+  actions: read # Needed to read actions/checkout@v3 and other actions
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            extension: ""
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            extension: ""
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            extension: ""
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            extension: ".exe"
+        exclude:
+          - os: ubuntu-latest
+            goarch: arm64
+          - os: windows-latest
+            goarch: arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21" # Or your target Go version
+
+      - name: Build
+        run: |
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -o senk-tui-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }} main.go
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: senk-tui-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
+          path: senk-tui-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: .
+
+      - name: Set up GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh
+
+      - name: Authenticate GitHub CLI
+        run: |
+          gh auth login --with-token <<< ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Commit Messages
+        id: get_commit_messages
+        run: |
+          # Fetch the previous tag
+          previous_tag=$(git describe --tags --abbrev=0 HEAD^ || echo "")
+          if [ -z "$previous_tag" ]; then
+            # No previous tag found, use initial commit
+            commits=$(git log --pretty=format:"%h %s")
+          else
+            # Get the list of commits between the previous tag and the current tag
+            commits=$(git log --pretty=format:"%h %s" $previous_tag..HEAD)
+          fi
+          echo "commits<<EOF" >> $GITHUB_ENV
+          echo "$commits" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        run: |
+          gh release create ${{ github.ref }} ./senk-tui-linux-amd64/senk-tui-linux-amd64 ./senk-tui-darwin-arm64/senk-tui-darwin-arm64 ./senk-tui-darwin-amd64/senk-tui-darwin-amd64 ./senk-tui-windows-amd64.exe/senk-tui-windows-amd64.exe --title "Release ${{ github.ref }}" --notes "$commits"
