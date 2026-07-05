@@ -1,5 +1,9 @@
 # senk-tui (Dependencies TUI)
 
+<p align="center">
+  <img src="docs/design.png" alt="senk-tui interface design" width="800"/>
+</p>
+
 ## Description
 
 **senk-tui** is a Terminal User Interface (TUI) command-line tool written in Go that helps you manage globally installed dependencies across multiple programming languages and package managers on your system. It provides an intuitive, interactive interface to view, inspect, and uninstall global packages seamlessly.
