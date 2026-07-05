@@ -52,13 +52,13 @@ jobs:
 
       - name: Build
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -o senk-tui-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }} main.go
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -o senk-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }} main.go
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: senk-tui-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
-          path: senk-tui-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
+          name: senk-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
+          path: senk-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
 
   release:
     needs: build
@@ -102,4 +102,4 @@ jobs:
       - name: Create Release
         id: create_release
         run: |
-          gh release create ${{ github.ref }} ./senk-tui-linux-amd64/senk-tui-linux-amd64 ./senk-tui-darwin-arm64/senk-tui-darwin-arm64 ./senk-tui-darwin-amd64/senk-tui-darwin-amd64 ./senk-tui-windows-amd64.exe/senk-tui-windows-amd64.exe --title "Release ${{ github.ref }}" --notes "$commits"
+          gh release create ${{ github.ref }} ./senk-linux-amd64/senk-linux-amd64 ./senk-darwin-arm64/senk-darwin-arm64 ./senk-darwin-amd64/senk-darwin-amd64 ./senk-windows-amd64.exe/senk-windows-amd64.exe --title "Release ${{ github.ref }}" --notes "$commits"

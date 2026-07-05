@@ -26,13 +26,13 @@ First, make sure you have [Go](https://golang.org/dl/) installed on your system.
 2. Build the project:
 
     ```sh
-    go build -ldflags="-s -w" -o bin/senk-tui
+    go build -ldflags="-s -w" -o bin/senk
     ```
 
 3. (Optional) Move the executable to a directory included in your PATH to use it from anywhere:
 
     ```sh
-    mv bin/senk-tui /usr/local/bin/
+    mv bin/senk /usr/local/bin/
     ```
 
 ## Usage
@@ -40,7 +40,7 @@ First, make sure you have [Go](https://golang.org/dl/) installed on your system.
 To use the tool, simply run the executable in your terminal:
 
 ```sh
-senk-tui
+senk
 ```
 
 ### Navigation

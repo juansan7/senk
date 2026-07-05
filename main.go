@@ -46,7 +46,7 @@ func main() {
 
 	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("Error running senk-tui: %v", err)
+		fmt.Printf("Error running senk: %v", err)
 		os.Exit(1)
 	}
 }
